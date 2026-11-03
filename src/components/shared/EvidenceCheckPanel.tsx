@@ -55,7 +55,7 @@ export function EvidenceCheckPanel({ completion: c, item, personName, detailed =
             {look.label}
           </span>
           {c.reviewSource ? (
-            <span className="text-[11px] text-faint">· {c.reviewSource === 'ai' ? 'automatic check' : 'Learning Team'}</span>
+            <span className="text-[11px] text-faint">· {c.reviewSource === 'ai' ? 'automatic check' : 'reviewer'}</span>
           ) : null}
         </div>
         {detailed && check?.confidence != null && check.status === 'done' ? (

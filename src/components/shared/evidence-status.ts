@@ -15,10 +15,10 @@ export function evidenceState(c: Completion): EvidenceState {
 export const EVIDENCE_STATE: Record<EvidenceState, { label: string; color: string; hint: string }> = {
   checking: { label: 'Checking', color: C.blue, hint: 'The certificate is being checked automatically.' },
   verified: { label: 'Verified', color: C.green, hint: 'Checked automatically - matches the activity.' },
-  approved: { label: 'Approved', color: C.green, hint: 'Approved by the Learning Team.' },
-  flagged: { label: 'Needs review', color: C.amber, hint: 'The Learning Team will review this evidence.' },
+  approved: { label: 'Approved', color: C.green, hint: 'Approved by a reviewer.' },
+  flagged: { label: 'Needs review', color: C.amber, hint: 'The Learning Team or HR will review this evidence.' },
   rejected: { label: 'Rejected', color: C.red, hint: 'Upload the correct evidence to complete this item.' },
-  awaiting: { label: 'Awaiting review', color: 'rgba(38,39,25,.5)', hint: 'Waiting for the Learning Team.' },
+  awaiting: { label: 'Awaiting review', color: 'rgba(38,39,25,.5)', hint: 'Waiting for the Learning Team or HR.' },
   none: { label: 'Acknowledged', color: 'rgba(38,39,25,.5)', hint: 'No file required.' },
 };
 

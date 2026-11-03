@@ -35,6 +35,30 @@ export const rules = {
   optionalDate: z.string().refine((v) => !v || /^\d{4}-\d{2}-\d{2}$/.test(v), 'Use a valid date'),
 };
 
+/** Path parts that still mean "front page": index files and language / country codes (e.g. /gb/en.html). */
+const LANDING_SEGMENT = /^(index|home|default|welcome|[a-z]{2}(-[a-z]{2})?)$/;
+
+/**
+ * True when a learning link goes to a provider's front page (https://www.icaew.com/,
+ * https://www.accaglobal.com/gb/en.html) rather than a specific course. Allowed, but people then
+ * have to hunt for the course, so the UI warns. Mirrors the backend's import-parsing.ts.
+ */
+export function isHomePageLink(link: string | null | undefined): boolean {
+  if (!link) return false;
+  let u: URL;
+  try {
+    u = new URL(link.trim());
+  } catch {
+    return false;
+  }
+  if (!/^https?:$/.test(u.protocol) || u.search || u.hash) return false;
+  return u.pathname
+    .split('/')
+    .filter(Boolean)
+    .map((s) => s.toLowerCase().replace(/\.(html?|php|aspx?)$/, ''))
+    .every((s) => LANDING_SEGMENT.test(s));
+}
+
 /** Optional date range where "to" must not be before "from". */
 export const periodSchema = z
   .object({ from: rules.optionalDate, to: rules.optionalDate })

@@ -19,7 +19,7 @@ function ReviewLine({ completion }: { completion: NonNullable<PlanEntry['complet
   const label = state === 'checking' ? 'Checking evidence…' : state === 'flagged' ? 'Under review' : look.label;
   const detail =
     state === 'flagged'
-      ? `${completion.reviewNotes ? `${completion.reviewNotes} ` : ''}It still counts - the Learning Team will check it.`
+      ? `${completion.reviewNotes ? `${completion.reviewNotes} ` : ''}It still counts - the Learning Team or HR will check it.`
       : look.hint;
   return (
     <div className="mt-2.5 flex items-start gap-2 text-[12px] leading-5">

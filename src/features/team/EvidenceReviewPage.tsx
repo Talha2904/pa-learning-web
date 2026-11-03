@@ -15,7 +15,7 @@ import { ErrorState, PageSkeleton } from '@/components/ui/states';
 import { errorMessage } from '@/lib/api-client';
 import { formatDate, formatHours } from '@/lib/format';
 import type { EvidenceRecord } from '@/types/api';
-import { usePermissions } from '../auth/AuthProvider';
+import { useAuth, usePermissions } from '../auth/AuthProvider';
 import { useCycle } from '../cycles/CycleProvider';
 import { downloadTeamReport, useDecideEvidence, useEvidenceRegister, useRecheckEvidence } from './api';
 
@@ -34,7 +34,10 @@ const REJECT_MAX = 1000;
 export default function EvidenceReviewPage() {
   const { data, isPending, error, refetch } = useEvidenceRegister({});
   const { cycleId } = useCycle();
-  const { decideEvidence: canDecide } = usePermissions();
+  const { decideEvidence } = usePermissions();
+  const myId = useAuth().me?.profile.id;
+  // Nobody reviews their own evidence (the API enforces this too).
+  const canDecideOn = (r: EvidenceRecord) => decideEvidence && r.person.id !== myId;
   const toast = useToast();
   const decide = useDecideEvidence();
   const recheck = useRecheckEvidence();
@@ -151,7 +154,7 @@ export default function EvidenceReviewPage() {
       hideOnMobile: true,
       render: (r) => (
         <Button size="sm" onClick={() => setViewingId(r.completion.id)}>
-          {canDecide && evidenceState(r.completion) === 'flagged' ? 'Review' : r.completion.evidence ? 'View' : 'Details'}
+          {canDecideOn(r) && evidenceState(r.completion) === 'flagged' ? 'Review' : r.completion.evidence ? 'View' : 'Details'}
         </Button>
       ),
     },
@@ -227,7 +230,7 @@ export default function EvidenceReviewPage() {
           ) : null
         }
         actions={
-          viewing && canDecide && viewing.completion.evidence ? (
+          viewing && canDecideOn(viewing) && viewing.completion.evidence ? (
             <div className="mr-auto flex flex-wrap gap-2">
               {state !== 'approved' ? (
                 <Button variant="dark" size="lg" disabled={busy} onClick={() => approve(viewing)}>

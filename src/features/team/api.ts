@@ -44,14 +44,14 @@ function useEvidenceMutation<V>(fn: (v: V) => Promise<Completion>) {
   });
 }
 
-/** Learning Team: approve or reject a submission. */
+/** Learning Team / HR: approve or reject a submission. */
 export function useDecideEvidence() {
   return useEvidenceMutation((v: { completionId: string; decision: 'verified' | 'rejected'; note?: string }) =>
     api.post<Completion>(`/completions/${v.completionId}/review`, { decision: v.decision, note: v.note || undefined }),
   );
 }
 
-/** Learning Team: run the automatic check again. */
+/** Learning Team / HR: run the automatic check again. */
 export function useRecheckEvidence() {
   return useEvidenceMutation((completionId: string) => api.post<Completion>(`/completions/${completionId}/recheck`, {}));
 }

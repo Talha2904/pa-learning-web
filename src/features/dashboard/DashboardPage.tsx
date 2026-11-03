@@ -80,6 +80,7 @@ function useDrills(o: Overview | undefined) {
               'Assigned',
               'Completed',
               'Confirmed',
+              'Course Link',
             ],
             ...list.map(({ item, assignedCount, completedCount, confirmedCount }) => [
               item.title,
@@ -92,6 +93,7 @@ function useDrills(o: Overview | undefined) {
               assignedCount,
               completedCount,
               confirmedCount,
+              item.link,
             ]),
           ],
         });
@@ -134,7 +136,7 @@ function useDrills(o: Overview | undefined) {
           subtitle: `${outstandingRows(onlyOverdue).length} items still to evidence`,
           rows: outstandingRows(onlyOverdue),
           exportRows: [
-            ['Activity', 'Member', 'Due Date', 'Hours', 'Mandatory', 'Overdue'],
+            ['Activity', 'Member', 'Due Date', 'Hours', 'Mandatory', 'Overdue', 'Course Link'],
             ...o.outstanding
               .filter((x) => !onlyOverdue || x.overdue)
               .map((x) => [
@@ -144,6 +146,7 @@ function useDrills(o: Overview | undefined) {
                 x.hours,
                 x.isMandatory ? 'Yes' : 'No',
                 x.overdue ? 'Yes' : 'No',
+                o.items.find((r) => r.item.id === x.itemId)?.item.link ?? null,
               ]),
           ],
         }),

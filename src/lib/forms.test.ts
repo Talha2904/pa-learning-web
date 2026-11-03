@@ -5,7 +5,7 @@ import { itemSchema, toItemInput, type ItemFormValues } from '@/features/learnin
 import { evidenceSchema } from '@/features/my-learning/evidence.schema';
 import { toPersonInput, userSchema } from '@/features/users/user.schema';
 import { ApiError } from './api-client';
-import { applyServerErrors, periodSchema, requiredPeriodSchema } from './forms';
+import { applyServerErrors, isHomePageLink, periodSchema, requiredPeriodSchema } from './forms';
 
 /** Field → first message per field (what react-hook-form displays), for compact assertions. */
 function errorsOf(result: { success: boolean; error?: { issues: { path: PropertyKey[]; message: string }[] } }) {
@@ -175,5 +175,19 @@ describe('applyServerErrors', () => {
 
   it('ignores non-API errors', () => {
     expect(applyServerErrors(new Error('x'), vi.fn(), ['email'] as const)).toBe(false);
+  });
+});
+
+describe('isHomePageLink', () => {
+  it('spots links to a provider home page rather than a course', () => {
+    expect(isHomePageLink('https://www.icaew.com')).toBe(true);
+    expect(isHomePageLink('https://alison.com/')).toBe(true);
+    expect(isHomePageLink('https://www.accaglobal.com/gb/en.html')).toBe(true);
+    expect(isHomePageLink('https://www.accaglobal.com/gb/en/cpd/aml-update.html')).toBe(false);
+    expect(isHomePageLink('https://alison.com/course/excel-for-beginners')).toBe(false);
+    expect(isHomePageLink('https://example.com/?course=42')).toBe(false);
+    expect(isHomePageLink('')).toBe(false);
+    expect(isHomePageLink(null)).toBe(false);
+    expect(isHomePageLink('not a url')).toBe(false);
   });
 });

@@ -215,6 +215,11 @@ function WizardBody<S>({
                     ) : (
                       <div className="mt-0.5 text-[11px] text-muted">{view?.secondary}</div>
                     )}
+                    {!bad && r.warnings?.length ? (
+                      <div className="mt-0.5 text-[11px]" style={{ color: C.amber }}>
+                        {r.warnings.join(' · ')}
+                      </div>
+                    ) : null}
                   </div>
                   {view?.tag && !bad ? (
                     <div className="whitespace-nowrap bg-track px-[9px] py-[3px] text-[11px]" style={{ color: view.tagColor ?? C.deep }}>

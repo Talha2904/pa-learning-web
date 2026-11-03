@@ -46,7 +46,7 @@ export interface Permissions {
   manageUsers: boolean;
   manageReminders: boolean;
   reviewEvidence: boolean;
-  /** Approve / reject evidence and re-run checks (Learning Team). */
+  /** Approve / reject evidence and re-run checks (Learning Team and HR). */
   decideEvidence: boolean;
   viewTeam: boolean;
 }
@@ -136,7 +136,7 @@ export interface PlanEntry {
   daysOverdue: number;
   daysUntilDue: number | null;
   completion: Completion | null;
-  /** Submission the Learning Team rejected - the item is outstanding again. */
+  /** Submission a reviewer (Learning Team / HR) rejected - the item is outstanding again. */
   rejected: Completion | null;
 }
 
@@ -194,7 +194,7 @@ export interface Overview {
     hoursConfirmed: number;
     averageConfirmedPct: number;
   };
-  /** Evidence waiting for a Learning Team decision (in the viewer's scope). */
+  /** Evidence waiting for a Learning Team / HR decision (in the viewer's scope). */
   reviewQueue: { waiting: number; waitingOverDays: number; overDays: number };
   members: MemberProgress[];
   items: { item: LearningItem; assignedCount: number; completedCount: number; confirmedCount: number; overdueCount: number }[];
@@ -236,7 +236,15 @@ export interface EvidenceUrl {
 }
 
 export interface ImportPreview<S> {
-  rows: { rowNumber: number; values: Record<string, string>; errors: string[]; summary: S | null; action?: 'create' | 'update' | null }[];
+  rows: {
+    rowNumber: number;
+    values: Record<string, string>;
+    errors: string[];
+    /** Non-blocking problems (item import only, e.g. a link to a provider's home page). */
+    warnings?: string[];
+    summary: S | null;
+    action?: 'create' | 'update' | null;
+  }[];
   validCount: number;
   errorCount: number;
 }

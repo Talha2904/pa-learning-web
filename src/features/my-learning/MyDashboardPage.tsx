@@ -30,6 +30,25 @@ const row = (e: PlanEntry): DrillRow => ({
   dot: e.status === 'completed' ? C.green : e.item.isMandatory ? C.red : C.blue,
 });
 
+/** CSV for "Export selection": everything needed to go and do the learning, including the course link. */
+const exportRows = (list: PlanEntry[]) => [
+  ['Activity', 'Category', 'Delivery', 'Provider', 'Hours', 'Due Date', 'Mandatory', 'Status', 'Completed On', 'Course Link'],
+  ...list.map((e) => [
+    e.item.title,
+    e.item.category.name,
+    e.item.deliveryType.name,
+    e.item.provider,
+    e.item.hours,
+    e.item.dueDate,
+    e.item.isMandatory ? 'Yes' : 'No',
+    e.status === 'completed' ? 'Completed' : e.status === 'overdue' ? 'Overdue' : 'Outstanding',
+    e.completion?.completedOn ?? null,
+    e.item.link,
+  ]),
+];
+
+const drillOf = (title: string, subtitle: string, list: PlanEntry[]) => ({ title, subtitle, rows: list.map(row), exportRows: exportRows(list) });
+
 export default function MyDashboardPage() {
   const { data, isPending, error, refetch } = useMyPlan();
   const drill = useDrillDown();
@@ -85,7 +104,7 @@ export default function MyDashboardPage() {
       sub: `${mandatoryPending.length} compliance items still to evidence`,
       list: mandatoryPending,
     },
-  ].map((g) => ({ ...g, onClick: () => drill({ title: g.title, subtitle: g.sub, rows: g.list.map(row) }) }));
+  ].map((g) => ({ ...g, onClick: () => drill(drillOf(g.title, g.sub, g.list)) }));
 
   // Progress ring: filled proportionally to completion %, colored by threshold.
   const progressSegments = [
@@ -103,13 +122,7 @@ export default function MyDashboardPage() {
         {overdue.length ? (
           <button
             type="button"
-            onClick={() =>
-              drill({
-                title: 'Overdue learning',
-                subtitle: `${overdue.length} items past their due date`,
-                rows: overdue.map(row),
-              })
-            }
+            onClick={() => drill(drillOf('Overdue learning', `${overdue.length} items past their due date`, overdue))}
             className="block w-full cursor-pointer bg-white px-5 py-4 text-left text-[13px] leading-[22px] shadow-card"
             style={{ borderLeft: `3px solid ${C.red}` }}
           >
@@ -148,11 +161,7 @@ export default function MyDashboardPage() {
           <button
             type="button"
             onClick={() =>
-              drill({
-                title: 'Hours completed',
-                subtitle: `${s.hoursCompleted} of ${s.hoursAssigned} assigned hours evidenced`,
-                rows: done.map(row),
-              })
+              drill(drillOf('Hours completed', `${s.hoursCompleted} of ${s.hoursAssigned} assigned hours evidenced`, done))
             }
             className="cursor-pointer rounded-[18px] border border-[rgba(218,230,246,.95)] bg-white p-6 text-left shadow-card"
           >
@@ -172,11 +181,7 @@ export default function MyDashboardPage() {
           <button
             type="button"
             onClick={() =>
-              drill({
-                title: 'Mandatory outstanding',
-                subtitle: `${mandatoryPending.length} compliance items still to evidence`,
-                rows: mandatoryPending.map(row),
-              })
+              drill(drillOf('Mandatory outstanding', `${mandatoryPending.length} compliance items still to evidence`, mandatoryPending))
             }
             className="cursor-pointer rounded-[18px] border border-[rgba(218,230,246,.95)] bg-white p-6 text-left shadow-card"
           >

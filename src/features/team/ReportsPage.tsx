@@ -22,32 +22,37 @@ const EXPORTS: { kind: TeamReportKind; label: string; sub: string; color: string
   {
     kind: 'log',
     label: 'Full learning log',
-    sub: 'Every person and item: required, completed, outstanding, hours, due date, date completed, days overdue and evidence',
+    sub: 'Every person and item in one list: hours, due date, status, evidence, reflection and course link',
     color: C.ink,
   },
   {
     kind: 'completion',
     label: 'Team completion report',
-    sub: 'Summary sheet plus member-by-item detail',
+    sub: 'One row per person: items and hours completed, outstanding, overdue and completion %',
     color: C.blue,
   },
   {
     kind: 'mandatory',
     label: 'Mandatory items status',
-    sub: 'Compliance-critical learning only',
+    sub: 'Who is compliant on mandatory learning, plus each mandatory item by person',
     color: C.red,
   },
-  { kind: 'outstanding', label: 'Outstanding learning', sub: 'Items not yet evidenced', color: C.purple },
+  {
+    kind: 'outstanding',
+    label: 'Outstanding learning',
+    sub: 'Chase list: what each person still has to do, most overdue first, with line manager and course link',
+    color: C.purple,
+  },
   {
     kind: 'icaew',
     label: 'ICAEW CPD log',
-    sub: 'Completed activity with hours, verifiable flag and reflection',
+    sub: 'Completed activity only, in ICAEW log format: date, hours, verifiable flag and reflection',
     color: C.teal,
   },
   {
     kind: 'acca',
     label: 'ACCA CPD log',
-    sub: 'Units (1 unit = 1 hour), verifiable flag and learning outcome',
+    sub: 'Completed activity only, in ACCA log format: units (1 unit = 1 hour), verifiable flag and learning outcome',
     color: C.cyan,
   },
 ];

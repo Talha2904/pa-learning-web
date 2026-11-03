@@ -11,6 +11,7 @@ import { StatusText, Tag } from '@/components/ui/bits';
 import { ErrorState, PageSkeleton } from '@/components/ui/states';
 import { errorMessage } from '@/lib/api-client';
 import { formatDate, formatHours } from '@/lib/format';
+import { isHomePageLink } from '@/lib/forms';
 import { C } from '@/lib/palette';
 import type { LearningItem } from '@/types/api';
 import { useUsers } from '../users/api';
@@ -52,6 +53,11 @@ export default function TemplatePage() {
         <div>
           <div className="font-medium text-ink">{i.title}</div>
           <div className="mt-0.5 text-[11px] text-faint">{i.category.name}</div>
+          {isHomePageLink(i.link) ? (
+            <div className="mt-0.5 text-[11px]" style={{ color: C.amber }} title={i.link ?? undefined}>
+              Link goes to the provider's home page, not the course
+            </div>
+          ) : null}
         </div>
       ),
     },

@@ -9,7 +9,8 @@ import { Tabs } from '@/components/ui/Tabs';
 import { Avatar } from '@/components/ui/bits';
 import { ApiError, errorMessage } from '@/lib/api-client';
 import { cn } from '@/lib/cn';
-import { applyServerErrors, LIMITS } from '@/lib/forms';
+import { applyServerErrors, isHomePageLink, LIMITS } from '@/lib/forms';
+import { C } from '@/lib/palette';
 import type { LearningItem, Lookups, PersonAdmin } from '@/types/api';
 import { useSaveItem } from './api';
 import { DETAIL_FIELDS, itemDefaults, itemSchema, toItemInput, type ItemFormValues } from './item.schema';
@@ -66,7 +67,7 @@ function ItemDialogBody({ item, lookups, people, onClose }: ItemDialogProps) {
     defaultValues: itemDefaults(item, lookups),
     mode: 'onTouched',
   });
-  const [all, designationIds, profileIds] = watch(['all', 'designationIds', 'profileIds']);
+  const [all, designationIds, profileIds, link] = watch(['all', 'designationIds', 'profileIds', 'link']);
 
   const activePeople = useMemo(() => people.filter((p) => p.status === 'active'), [people]);
   const visiblePeople = useMemo(() => {
@@ -191,7 +192,22 @@ function ItemDialogBody({ item, lookups, people, onClose }: ItemDialogProps) {
             ]}
             {...register('evidenceMode')}
           />
-          <TextField className="sm:col-span-2" label="Learning link" placeholder="https://" error={errors.link?.message} {...register('link')} />
+          <TextField
+            className="sm:col-span-2"
+            label="Learning link"
+            placeholder="https://"
+            error={errors.link?.message}
+            hint={
+              isHomePageLink(link) ? (
+                <span style={{ color: C.amber }}>
+                  This is the provider's home page. Paste the link to the specific course so people land on it directly.
+                </span>
+              ) : (
+                'Link straight to the course, not the provider’s home page.'
+              )
+            }
+            {...register('link')}
+          />
           <TextArea
             className="sm:col-span-2"
             label="Description"
