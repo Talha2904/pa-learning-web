@@ -1,19 +1,30 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, configureApi } from '@/lib/api-client';
-import { accessToken, authAdapter } from '@/lib/auth-client';
+import { accessToken, authAdapter, clearAuthRedirectFromUrl, initialAuthRedirect } from '@/lib/auth-client';
+import { config } from '@/lib/config';
 import type { Me, Permissions, Person } from '@/types/api';
 
-type Status = 'loading' | 'signed-out' | 'ready' | 'blocked';
+/** 'recovery' = arrived from a password-reset link and must choose a new password first. */
+type Status = 'loading' | 'signed-out' | 'recovery' | 'ready' | 'blocked';
+
+const EXPIRED_LINK = 'This link is invalid or has expired. Request a new password reset link below.';
 
 interface AuthContextValue {
   status: Status;
   me: Me | undefined;
   /** Why a signed-in account cannot use the app (no profile / deactivated). */
   blockedReason: string | null;
+  /** Problem with an email link (e.g. expired reset link), shown on the sign-in page. */
+  linkError: string | null;
+  dismissLinkError(): void;
   signIn(email: string, password: string): Promise<void>;
   register(fullName: string, email: string, password: string): Promise<void>;
   signOut(): Promise<void>;
+  requestPasswordReset(email: string): Promise<void>;
+  /** Saves the new password chosen after a reset link, then continues into the app. */
+  completePasswordReset(password: string): Promise<void>;
+  changePassword(currentPassword: string, newPassword: string): Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -27,6 +38,8 @@ export const ME_KEY = ['me'] as const;
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [session, setSession] = useState<boolean | undefined>(undefined);
+  const [recovery, setRecovery] = useState(!config.demoMode && initialAuthRedirect.recovery);
+  const [linkError, setLinkError] = useState<string | null>(config.demoMode ? null : initialAuthRedirect.linkError);
 
   const signOut = useCallback(async () => {
     try {
@@ -38,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // leave it stuck loading forever.
       queryClient.clear();
     }
+    setRecovery(false);
     setSession(false);
   }, [queryClient]);
 
@@ -45,16 +59,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     configureApi(accessToken, () => void signOut());
     const auth = authAdapter();
     void auth.isSignedIn().then(setSession);
-    return auth.subscribe((signedIn) => {
+    return auth.subscribe(({ signedIn, recovery: fromResetLink }) => {
       if (!signedIn) queryClient.clear();
+      if (fromResetLink) setRecovery(true);
       setSession(signedIn);
     });
   }, [signOut, queryClient]);
 
+  // An error link (e.g. expired) has been read; tidy the address bar.
+  useEffect(() => {
+    if (linkError) clearAuthRedirectFromUrl();
+  }, [linkError]);
+
+  // A reset link whose token did not produce a session (expired / already used).
+  useEffect(() => {
+    if (recovery && session === false) {
+      setRecovery(false);
+      setLinkError(EXPIRED_LINK);
+    }
+  }, [recovery, session]);
+
   const meQuery = useQuery({
     queryKey: ME_KEY,
     queryFn: () => api.get<Me>('/me'),
-    enabled: !!session,
+    enabled: !!session && !recovery,
     staleTime: 5 * 60_000,
     retry: (count, err) => (err as { status?: number }).status !== 403 && count < 2,
   });
@@ -69,6 +97,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [signIn],
   );
 
+  // Our backend emails the reset link through the firm's SMTP (same answer whether or not the account exists).
+  const requestPasswordReset = useCallback(async (email: string) => {
+    await api.post<{ requested: boolean }>('/auth/password-reset', { email });
+  }, []);
+
+  const completePasswordReset = useCallback(async (password: string) => {
+    await authAdapter().updatePassword(password);
+    clearAuthRedirectFromUrl();
+    setRecovery(false);
+  }, []);
+
+  const changePassword = useCallback(
+    (currentPassword: string, newPassword: string) => authAdapter().changePassword(currentPassword, newPassword),
+    [],
+  );
+
+  const dismissLinkError = useCallback(() => setLinkError(null), []);
+
   // 403 = account not allowed. Any other failure (server down, bad gateway) must also
   // surface here, otherwise the app sits on the loader forever.
   const blockedReason = meQuery.error
@@ -77,19 +123,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       : `Could not load your profile: ${(meQuery.error as Error).message}`
     : null;
   const status: Status =
-    session === undefined || (session && meQuery.isPending && !blockedReason)
+    session === undefined
       ? 'loading'
       : !session
         ? 'signed-out'
-        : blockedReason
-          ? 'blocked'
-          : meQuery.data
-            ? 'ready'
-            : 'loading';
+        : recovery
+          ? 'recovery'
+          : meQuery.isPending && !blockedReason
+            ? 'loading'
+            : blockedReason
+              ? 'blocked'
+              : meQuery.data
+                ? 'ready'
+                : 'loading';
 
   const value = useMemo(
-    () => ({ status, me: meQuery.data, blockedReason, signIn, register, signOut }),
-    [status, meQuery.data, blockedReason, signIn, register, signOut],
+    () => ({
+      status,
+      me: meQuery.data,
+      blockedReason,
+      linkError,
+      dismissLinkError,
+      signIn,
+      register,
+      signOut,
+      requestPasswordReset,
+      completePasswordReset,
+      changePassword,
+    }),
+    [status, meQuery.data, blockedReason, linkError, dismissLinkError, signIn, register, signOut, requestPasswordReset, completePasswordReset, changePassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

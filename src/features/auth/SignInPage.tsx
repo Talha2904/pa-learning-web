@@ -7,20 +7,44 @@ import { Tabs } from '@/components/ui/Tabs';
 import { errorMessage } from '@/lib/api-client';
 import { config } from '@/lib/config';
 import { applyServerErrors, LIMITS } from '@/lib/forms';
-import { authSchema, type AuthValues } from './auth.schema';
+import { AuthAlert, AuthCard, AuthShell } from './AuthLayout';
+import { authSchema, forgotPasswordSchema, type AuthValues, type ForgotPasswordValues } from './auth.schema';
 import { useAuth } from './AuthProvider';
 import { DemoAccountPicker } from './DemoAccountPicker';
 
 type Mode = AuthValues['mode'];
 
-/** Split screen from the prototype: animated black brand panel + sign-in / request-access form. */
+/** Sign in / Request access, plus the "Forgot password?" view. */
 export function SignInPage() {
+  const { linkError } = useAuth();
+  // An expired reset link sends people straight to "request a new link".
+  const [view, setView] = useState<'main' | 'forgot'>(linkError && !config.demoMode ? 'forgot' : 'main');
+  const [email, setEmail] = useState('');
+
+  return (
+    <AuthShell>
+      {view === 'forgot' ? (
+        <ForgotPassword initialEmail={email} onBack={() => setView('main')} />
+      ) : (
+        <SignInForm
+          onForgot={(typed) => {
+            setEmail(typed);
+            setView('forgot');
+          }}
+        />
+      )}
+    </AuthShell>
+  );
+}
+
+function SignInForm({ onForgot }: { onForgot: (email: string) => void }) {
   const { signIn, register } = useAuth();
   const [message, setMessage] = useState<string | null>(null);
   const {
     register: field,
     handleSubmit,
     watch,
+    getValues,
     setValue,
     clearErrors,
     setError,
@@ -50,44 +74,20 @@ export function SignInPage() {
   };
 
   return (
-    <div className="pa-login-shell grid min-h-screen animate-fade-in bg-white lg:grid-cols-[minmax(0,520px)_minmax(0,1fr)]">
-      <section className="pa-login-hero flex flex-col justify-between gap-10 overflow-hidden bg-ink px-6 py-10 sm:px-12 lg:min-h-screen lg:py-14">
-        <div className="animate-soft-in">
-          <img src="/brand/lumen-horizontal-white.svg" alt="Lumen by Project Accountants" className="block h-auto w-[210px]" />
+    <AuthCard
+      title={mode === 'in' ? 'Sign in' : 'Request access'}
+      intro={
+        mode === 'in'
+          ? 'Use your Project Accountants work email and password.'
+          : 'New accounts start as Team Member. The Learning Team sets your role and designation.'
+      }
+    >
+      {config.demoMode ? (
+        <div className="mt-7">
+          <DemoAccountPicker />
         </div>
-        <div>
-          <div className="mb-[22px] animate-soft-in text-[13px] font-medium tracking-[1.3px] text-white/35 [animation-delay:.3s]">LEARNING &amp; CPD</div>
-          <div className="-mb-2.5 overflow-hidden pb-2.5">
-            <div className="animate-reveal text-[clamp(38px,4vw,54px)] font-semibold leading-[1.12] tracking-[-1.4px] text-white [animation-delay:.45s]">Learning</div>
-          </div>
-          <div className="-mb-3 overflow-hidden pb-3">
-            <div className="animate-reveal text-[clamp(38px,4vw,54px)] font-semibold leading-[1.12] tracking-[-1.4px] text-white [animation-delay:.6s]">on Record</div>
-          </div>
-          <div className="my-[26px] h-0.5 w-[100px] origin-left animate-rule bg-white [animation-delay:1.05s]" />
-          <p className="max-w-[360px] animate-soft-in text-[16px] leading-7 text-white/70 [animation-delay:1.25s]">All your learning and CPD in one place</p>
-        </div>
-        <div className="hidden animate-soft-in [animation-delay:1.55s] lg:block">
-          <div className="h-0.5 overflow-hidden bg-white/15">
-            <div className="h-full w-full origin-left animate-rule bg-pa-blue [animation-delay:1.6s] [animation-duration:1.8s]" />
-          </div>
-        </div>
-      </section>
-
-      <section className="pa-login-right flex items-center justify-center px-6 py-10 sm:p-12">
-        <div className="pa-login-box w-full max-w-[420px] p-6 sm:p-9 animate-fade-up [animation-delay:.12s]">
-          <h1 className="text-[32px] font-semibold tracking-[-0.6px] text-ink">{mode === 'in' ? 'Sign in' : 'Request access'}</h1>
-          <p className="mt-2 text-[14px] leading-6 text-[rgba(38,39,25,.6)]">
-            {mode === 'in'
-              ? 'Use your Project Accountants work email and password.'
-              : 'New accounts start as Team Member. The Learning Team sets your role and designation.'}
-          </p>
-
-          {config.demoMode ? (
-            <div className="mt-7">
-              <DemoAccountPicker />
-            </div>
-          ) : (
-            <>
+      ) : (
+        <>
           {config.microsoftSso ? (
             <>
               <button
@@ -138,33 +138,111 @@ export function SignInPage() {
               error={errors.email?.message}
               {...field('email')}
             />
-            <TextField
-              label="Password"
-              type="password"
-              placeholder="••••••••••"
-              autoComplete={mode === 'in' ? 'current-password' : 'new-password'}
-              error={errors.password?.message}
-              hint={mode === 'up' ? `At least ${LIMITS.passwordMin} characters` : undefined}
-              {...field('password')}
-            />
-            {message ? (
-              <div role="alert" className="bg-panel px-3.5 py-[11px] text-[13px] leading-5 text-pa-red">
-                {message}
-              </div>
-            ) : null}
+            <div>
+              <TextField
+                label="Password"
+                type="password"
+                placeholder="••••••••••"
+                autoComplete={mode === 'in' ? 'current-password' : 'new-password'}
+                error={errors.password?.message}
+                hint={mode === 'up' ? `At least ${LIMITS.passwordMin} characters` : undefined}
+                {...field('password')}
+              />
+              {mode === 'in' ? (
+                <div className="mt-2 text-right">
+                  <button
+                    type="button"
+                    onClick={() => onForgot(getValues('email').trim())}
+                    className="cursor-pointer text-[12px] font-medium text-pa-blue-dark underline-offset-2 hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              ) : null}
+            </div>
+            {message ? <AuthAlert>{message}</AuthAlert> : null}
             <Button type="submit" variant="dark" block loading={isSubmitting} className="!py-3.5 !text-[12px] !tracking-[1.4px]">
               {mode === 'in' ? 'Sign in' : 'Request access'}
             </Button>
           </form>
+        </>
+      )}
 
-            </>
-          )}
+      <p className="mt-[22px] text-[12px] leading-5 text-faint">
+        Access, roles and designations are managed by the Learning Team. Microsoft single sign-on will be enabled for @projectaccountants.co.uk accounts.
+      </p>
+    </AuthCard>
+  );
+}
 
-          <p className="mt-[22px] text-[12px] leading-5 text-faint">
-            Access, roles and designations are managed by the Learning Team. Microsoft single sign-on will be enabled for @projectaccountants.co.uk accounts.
-          </p>
+function ForgotPassword({ initialEmail, onBack }: { initialEmail: string; onBack: () => void }) {
+  const { requestPasswordReset, linkError, dismissLinkError } = useAuth();
+  const [message, setMessage] = useState<string | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const {
+    register: field,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ForgotPasswordValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: initialEmail },
+    mode: 'onTouched',
+  });
+
+  const submit = handleSubmit(async ({ email }) => {
+    setMessage(null);
+    dismissLinkError();
+    try {
+      await requestPasswordReset(email);
+      setSentTo(email);
+    } catch (err) {
+      setMessage(errorMessage(err));
+    }
+  });
+
+  const back = () => {
+    dismissLinkError();
+    onBack();
+  };
+
+  if (sentTo) {
+    return (
+      <AuthCard title="Check your email" intro="Follow the link in the email to choose a new password.">
+        <div role="status" className="mt-7 bg-panel px-4 py-3.5 text-[13px] leading-6 text-body">
+          If there is a Lumen account for <b className="break-all">{sentTo}</b>, we have sent it a password reset link. The link can only be used once and
+          expires after a short time, so use it soon. Check your junk folder if it hasn't arrived within a few minutes.
         </div>
-      </section>
-    </div>
+        <Button variant="dark" block className="mt-5 !py-3.5 !text-[12px] !tracking-[1.4px]" onClick={back}>
+          Back to sign in
+        </Button>
+      </AuthCard>
+    );
+  }
+
+  return (
+    <AuthCard title="Reset password" intro="Enter your work email and we'll send you a link to choose a new password.">
+      <form onSubmit={(e) => void submit(e)} noValidate className="mt-7 space-y-4">
+        {linkError ? <AuthAlert>{linkError}</AuthAlert> : null}
+        <TextField
+          label="Work email"
+          type="email"
+          placeholder="you@projectaccountants.co.uk"
+          autoComplete="email"
+          error={errors.email?.message}
+          {...field('email')}
+        />
+        {message ? <AuthAlert>{message}</AuthAlert> : null}
+        <Button type="submit" variant="dark" block loading={isSubmitting} className="!py-3.5 !text-[12px] !tracking-[1.4px]">
+          Send reset link
+        </Button>
+        <button
+          type="button"
+          onClick={back}
+          className="block w-full cursor-pointer text-center text-[12px] font-medium text-pa-blue-dark underline-offset-2 hover:underline"
+        >
+          Back to sign in
+        </button>
+      </form>
+    </AuthCard>
   );
 }

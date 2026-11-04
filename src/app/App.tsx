@@ -8,6 +8,7 @@ import { DrillDownProvider } from '@/components/shared/DrillDown';
 import { ToastProvider } from '@/components/shared/Toast';
 import { Button } from '@/components/ui/Button';
 import { AuthProvider, useAuth, usePermissions } from '@/features/auth/AuthProvider';
+import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage';
 import { SignInPage } from '@/features/auth/SignInPage';
 import { CycleProvider } from '@/features/cycles/CycleProvider';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -88,6 +89,7 @@ function AuthGate() {
   const { status, blockedReason } = useAuth();
   if (status === 'loading') return <Preloader label="Signing you in" />;
   if (status === 'signed-out') return <SignInPage />;
+  if (status === 'recovery') return <ResetPasswordPage />;
   if (status === 'blocked') return <BlockedScreen reason={blockedReason ?? 'Your account cannot use the platform.'} />;
   return (
     <CycleProvider>

@@ -18,3 +18,29 @@ export const authSchema = z
   });
 
 export type AuthValues = z.infer<typeof authSchema>;
+
+/** "Forgot password?" - just the work email. */
+export const forgotPasswordSchema = z.object({ email: rules.email });
+export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
+
+const newPassword = z
+  .string()
+  .min(LIMITS.passwordMin, `Use at least ${LIMITS.passwordMin} characters`)
+  .max(128, 'At most 128 characters');
+
+/** New password chosen after a reset link: typed twice so a typo can't lock someone out. */
+export const newPasswordSchema = z
+  .object({ password: newPassword, confirm: z.string() })
+  .refine((v) => v.password === v.confirm, { path: ['confirm'], message: 'The passwords do not match' });
+export type NewPasswordValues = z.infer<typeof newPasswordSchema>;
+
+/** Change password while signed in: current password + new one twice. */
+export const changePasswordSchema = z
+  .object({ current: z.string().min(1, 'Enter your current password'), password: newPassword, confirm: z.string() })
+  .superRefine((v, ctx) => {
+    if (v.password !== v.confirm) ctx.addIssue({ code: 'custom', path: ['confirm'], message: 'The passwords do not match' });
+    if (v.current && v.password === v.current) {
+      ctx.addIssue({ code: 'custom', path: ['password'], message: 'Choose a password different from your current one' });
+    }
+  });
+export type ChangePasswordValues = z.infer<typeof changePasswordSchema>;

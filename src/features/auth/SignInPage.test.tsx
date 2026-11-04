@@ -6,11 +6,19 @@ import { SignInPage } from './SignInPage';
 
 const signIn = vi.fn();
 const register = vi.fn();
-vi.mock('./AuthProvider', () => ({ useAuth: () => ({ signIn, register }) }));
+const requestPasswordReset = vi.fn();
+const dismissLinkError = vi.fn();
+let linkError: string | null = null;
+vi.mock('./AuthProvider', () => ({
+  useAuth: () => ({ signIn, register, requestPasswordReset, dismissLinkError, linkError }),
+}));
 
 beforeEach(() => {
   signIn.mockReset().mockResolvedValue(undefined);
   register.mockReset().mockResolvedValue(undefined);
+  requestPasswordReset.mockReset().mockResolvedValue(undefined);
+  dismissLinkError.mockReset();
+  linkError = null;
 });
 
 describe('SignInPage form', () => {
@@ -59,5 +67,52 @@ describe('SignInPage form', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Request access' }));
     expect(await screen.findByText('Already registered')).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent('An account with this email already exists.');
+  });
+});
+
+describe('Forgot password', () => {
+  it('is offered on Sign in only, and carries over the typed email', async () => {
+    render(<SignInPage />);
+    await userEvent.type(screen.getByLabelText('Work email'), ' glin@projectaccountants.co.uk ');
+    await userEvent.click(screen.getByRole('tab', { name: 'Request access' }));
+    expect(screen.queryByRole('button', { name: 'Forgot password?' })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('tab', { name: 'Sign in' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Forgot password?' }));
+    expect(screen.getByRole('heading', { name: 'Reset password' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Work email')).toHaveValue('glin@projectaccountants.co.uk');
+  });
+
+  it('sends the reset link and shows a neutral confirmation', async () => {
+    render(<SignInPage />);
+    await userEvent.click(screen.getByRole('button', { name: 'Forgot password?' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Send reset link' }));
+    expect(await screen.findByText('Enter an email address')).toBeInTheDocument();
+    expect(requestPasswordReset).not.toHaveBeenCalled();
+
+    await userEvent.type(screen.getByLabelText('Work email'), 'glin@projectaccountants.co.uk');
+    await userEvent.click(screen.getByRole('button', { name: 'Send reset link' }));
+    expect(requestPasswordReset).toHaveBeenCalledWith('glin@projectaccountants.co.uk');
+    expect(await screen.findByRole('heading', { name: 'Check your email' })).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('If there is a Lumen account for glin@projectaccountants.co.uk');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Back to sign in' }));
+    expect(screen.getByRole('heading', { name: 'Sign in' })).toBeInTheDocument();
+  });
+
+  it('shows a rate-limit or network problem instead of the confirmation', async () => {
+    requestPasswordReset.mockRejectedValue(new Error('Too many requests. Please wait a minute and try again.'));
+    render(<SignInPage />);
+    await userEvent.click(screen.getByRole('button', { name: 'Forgot password?' }));
+    await userEvent.type(screen.getByLabelText('Work email'), 'glin@projectaccountants.co.uk');
+    await userEvent.click(screen.getByRole('button', { name: 'Send reset link' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Too many requests');
+    expect(screen.queryByRole('heading', { name: 'Check your email' })).not.toBeInTheDocument();
+  });
+
+  it('opens on "request a new link" when an expired reset link was used', () => {
+    linkError = 'This link is invalid or has expired. Request a new password reset link below.';
+    render(<SignInPage />);
+    expect(screen.getByRole('heading', { name: 'Reset password' })).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('has expired');
   });
 });

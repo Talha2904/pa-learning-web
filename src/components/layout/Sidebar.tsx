@@ -1,13 +1,15 @@
-import { ChevronsLeft, ChevronsRight, LogOut } from 'lucide-react';
+import { ChevronsLeft, ChevronsRight, KeyRound, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink } from 'react-router';
 import { navFor, type NavItem } from '@/app/navigation';
 import { Avatar } from '@/components/ui/bits';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useAuth, useMe } from '@/features/auth/AuthProvider';
+import { ChangePasswordDialog } from '@/features/auth/ChangePasswordDialog';
 import { useItems } from '@/features/learning-items/api';
 import { useMyPlan } from '@/features/my-learning/api';
 import { cn } from '@/lib/cn';
+import { config } from '@/lib/config';
 
 function useBadges(manageItems: boolean): Record<NonNullable<NavItem['badge']>, number> {
   const plan = useMyPlan();
@@ -33,6 +35,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse, onNavigate }: Sid
   const sections = navFor(permissions);
   const [tip, setTip] = useState<{ label: string; sub: string; top: number } | null>(null);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const showTip = (label: string, sub: string) => (e: { currentTarget: HTMLAnchorElement }) => {
     if (!collapsed) return;
@@ -129,6 +132,21 @@ export function Sidebar({ collapsed = false, onToggleCollapse, onNavigate }: Sid
             <div className="mb-3 break-all text-[10px] text-white/40">{profile.email}</div>
           </>
         )}
+        {!config.demoMode && (
+          <button
+            type="button"
+            onClick={() => setChangingPassword(true)}
+            title={collapsed ? 'Change password' : undefined}
+            aria-label="Change password"
+            className={cn(
+              'mb-2 cursor-pointer border border-white/25 text-[10px] font-semibold uppercase tracking-[1.1px] text-white/80 transition-colors hover:border-white hover:text-white',
+              collapsed ? 'flex w-full items-center justify-center px-0 py-[9px]' : 'flex w-full items-center justify-center gap-2 px-2.5 py-[9px]',
+            )}
+          >
+            <KeyRound size={collapsed ? 16 : 13} aria-hidden />
+            {collapsed ? null : 'Change password'}
+          </button>
+        )}
         <button
           type="button"
           onClick={() => setConfirmSignOut(true)}
@@ -155,6 +173,8 @@ export function Sidebar({ collapsed = false, onToggleCollapse, onNavigate }: Sid
       >
         You will be signed out of Lumen. You can sign back in any time.
       </ConfirmDialog>
+
+      {changingPassword && <ChangePasswordDialog onClose={() => setChangingPassword(false)} />}
 
       {tip && (
         <div
