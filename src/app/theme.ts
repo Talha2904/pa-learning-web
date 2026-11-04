@@ -4,10 +4,10 @@ import { createTheme } from '@mui/material';
 export const theme = createTheme({
   palette: {
     primary: { main: '#2d8dfe', dark: '#1f67c5', contrastText: '#fff' },
-    secondary: { main: '#000000' },
+    secondary: { main: '#0d1a33' },
     error: { main: '#ec4f3c' },
     success: { main: '#15b85f' },
-    text: { primary: '#13233d', secondary: '#71829b' },
+    text: { primary: '#01122e', secondary: '#71829b' },
     background: { default: '#f1f6fd', paper: '#fff' },
   },
   shape: { borderRadius: 12 },
@@ -18,7 +18,7 @@ export const theme = createTheme({
   components: {
     MuiSkeleton: { defaultProps: { animation: 'wave' }, styleOverrides: { root: { borderRadius: 8 } } },
     MuiTooltip: {
-      styleOverrides: { tooltip: { borderRadius: 8, background: '#102447', fontSize: 11, fontFamily: 'inherit' } },
+      styleOverrides: { tooltip: { borderRadius: 8, background: '#0d1a33', fontSize: 11, fontFamily: 'inherit' } },
     },
     MuiDialog: { defaultProps: { transitionDuration: { enter: 220, exit: 160 } } },
   },

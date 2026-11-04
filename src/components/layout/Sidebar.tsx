@@ -25,7 +25,7 @@ interface SidebarProps {
   onNavigate?: () => void;
 }
 
-/** The prototype's black sidebar: brand, signed-in person, navigation, sign-out. */
+/** Navy sidebar: Lumen logo, signed-in person, navigation, sign-out. */
 export function Sidebar({ collapsed = false, onToggleCollapse, onNavigate }: SidebarProps) {
   const { profile, permissions } = useMe();
   const { signOut } = useAuth();
@@ -43,12 +43,10 @@ export function Sidebar({ collapsed = false, onToggleCollapse, onNavigate }: Sid
   return (
     <div className="pa-sidebar flex h-full flex-col text-white">
       <div className={cn('pa-sidebar-brand flex items-center gap-3 border-b border-white/10', collapsed ? 'justify-center px-1.5 py-3' : 'px-5 py-[22px]')}>
-        <img src="/brand-mark.png" alt="" className={cn('block h-auto shrink-0', collapsed ? 'w-[24px]' : 'w-[34px]')} />
-        {!collapsed && (
-          <div className="min-w-0">
-            <div className="truncate text-[11px] font-semibold tracking-[1.3px]">PROJECT ACCOUNTANTS</div>
-            <div className="text-[10px] tracking-[1.3px] text-white/40">LEARNING PLATFORM</div>
-          </div>
+        {collapsed ? (
+          <img src="/brand/lumen-mark-white.svg" alt="Lumen" className="block h-auto w-[28px] shrink-0" />
+        ) : (
+          <img src="/brand/lumen-horizontal-white.svg" alt="Lumen by Project Accountants" className="block h-auto w-[168px] shrink-0" />
         )}
       </div>
 
@@ -155,7 +153,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse, onNavigate }: Sid
           void signOut();
         }}
       >
-        You will be signed out of the learning platform. You can sign back in any time.
+        You will be signed out of Lumen. You can sign back in any time.
       </ConfirmDialog>
 
       {tip && (

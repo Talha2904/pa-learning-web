@@ -12,7 +12,7 @@ import { C, ROLE_LABEL } from '@/lib/palette';
 import type { PersonAdmin, ReportingAccess, UserImportSummary, UserRole } from '@/types/api';
 import { useMe } from '../auth/AuthProvider';
 import { useLookups } from '../learning-items/api';
-import { defaultAccess, type PersonDraft } from './access';
+import { assignableRoles, canEditPerson, defaultAccess, type PersonDraft } from './access';
 import {
   downloadUserTemplate,
   useBulkUpdatePeople,
@@ -89,6 +89,12 @@ export default function UsersPage() {
     }
   };
 
+  const myRole = me.profile.role;
+  const locked = (p: PersonAdmin) => !canEditPerson(myRole, p.role);
+  const roleOptions = (p: PersonAdmin) => {
+    const roles = assignableRoles(myRole);
+    return roles.includes(p.role) ? roles : [p.role, ...roles];
+  };
   const designationOptions = lookups.data?.designations ?? [];
   const columns: Column<PersonAdmin>[] = [
     {
@@ -121,10 +127,11 @@ export default function UsersPage() {
           aria-label={`Role for ${p.fullName}`}
           className={cellSelect}
           value={view(p).role}
-          disabled={p.id === me.profile.id}
+          disabled={p.id === me.profile.id || locked(p)}
+          title={locked(p) ? 'Only the Learning Team can change a Learning Team account' : undefined}
           onChange={(e) => edit(p, { role: e.target.value as UserRole })}
         >
-          {(Object.keys(ROLE_LABEL) as UserRole[]).map((r) => (
+          {roleOptions(p).map((r) => (
             <option key={r} value={r}>
               {ROLE_LABEL[r]}
             </option>
@@ -140,6 +147,7 @@ export default function UsersPage() {
           aria-label={`Designation for ${p.fullName}`}
           className={cellSelect}
           value={view(p).designationId ?? ''}
+          disabled={locked(p)}
           onChange={(e) => edit(p, { designationId: e.target.value ? Number(e.target.value) : null })}
         >
           <option value="">- None -</option>
@@ -159,6 +167,7 @@ export default function UsersPage() {
           aria-label={`Line manager for ${p.fullName}`}
           className={cellSelect}
           value={view(p).lineManagerId ?? ''}
+          disabled={locked(p)}
           onChange={(e) => edit(p, { lineManagerId: e.target.value || null })}
         >
           <option value="">- None -</option>
@@ -183,6 +192,7 @@ export default function UsersPage() {
               aria-label={`Reporting access for ${p.fullName}`}
               className={cellSelect}
               value={a}
+              disabled={locked(p)}
               onChange={(e) => edit(p, { reportingAccess: e.target.value as ReportingAccess })}
             >
               <option value="full">Full reporting - all staff</option>
@@ -207,7 +217,7 @@ export default function UsersPage() {
       header: '',
       hideOnMobile: true,
       render: (p) => (
-        <Button size="sm" onClick={() => setEditing(p)}>
+        <Button size="sm" disabled={locked(p)} onClick={() => setEditing(p)}>
           Edit
         </Button>
       ),

@@ -11,7 +11,7 @@ export const C = {
   deep: '#2c609c',
   green: '#15b85f',
   amber: '#d98a16',
-  ink: '#000000',
+  ink: '#01122e',
   track: '#ecf4ff',
   muted: 'rgba(38,39,25,.5)',
 } as const;

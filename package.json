@@ -2,7 +2,7 @@
   "name": "pa-learning-frontend",
   "version": "0.1.0",
   "private": true,
-  "description": "Project Accountants Learning Platform - web app (React, Vite, Tailwind, MUI)",
+  "description": "Lumen by Project Accountants - web app (React, Vite, Tailwind, MUI)",
   "type": "module",
   "engines": {
     "node": ">=20.19.0"
@@ -25,6 +25,7 @@
     "@mui/material": "^9.4.0",
     "@supabase/auth-js": "^2.109.0",
     "@tanstack/react-query": "^5.104.1",
+    "lightningcss": "^1.33.0",
     "lucide-react": "^1.65.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
@@ -48,5 +49,8 @@
     "typescript": "~5.9.3",
     "vite": "^7.3.6",
     "vitest": "~4.1.11"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
   }
 }

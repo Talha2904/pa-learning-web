@@ -46,7 +46,7 @@ export function AppShell() {
       <Drawer
         open={open}
         onClose={() => setOpen(false)}
-        slotProps={{ paper: { sx: { width: 280, borderRadius: '0 20px 20px 0', background: '#102447' } } }}
+        slotProps={{ paper: { sx: { width: 280, borderRadius: '0 20px 20px 0', background: '#0d1a33' } } }}
         sx={{ display: { lg: 'none' } }}
       >
         <Sidebar onNavigate={() => setOpen(false)} />
@@ -54,10 +54,7 @@ export function AppShell() {
 
       <div className="pa-workspace flex min-w-0 flex-1 flex-col min-h-0">
         <div className="pa-mobile-topbar flex items-center justify-between gap-3 px-4 py-3 text-white lg:hidden">
-          <div className="flex items-center gap-2.5">
-            <img src="/brand-mark.png" alt="" className="w-7" />
-            <span className="text-[11px] font-semibold tracking-[1.3px]">PROJECT ACCOUNTANTS</span>
-          </div>
+          <img src="/brand/lumen-horizontal-white.svg" alt="Lumen by Project Accountants" className="block h-auto w-[132px]" />
           <button
             type="button"
             onClick={() => setOpen(true)}

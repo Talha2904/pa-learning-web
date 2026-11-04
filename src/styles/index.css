@@ -4,14 +4,15 @@
 @import 'tailwindcss';
 
 /* ------------------------------------------------------------------
-   Design tokens - transcribed from the Project Accountants prototype.
+   Design tokens - Lumen by Project Accountants (brand: navy #01122E / #0D1A33;
+   logo accents green #A9CF37, gold #E3BA37, sky #73CEEA, steel #6D9FD5).
    The visual language: black + white, Poppins, square corners,
    uppercase tracked micro-labels, one soft card shadow.
    ------------------------------------------------------------------ */
 @theme {
   --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
 
-  --color-ink: #000000;
+  --color-ink: #01122e;
   --color-body: #262719;
   --color-muted: rgb(38 39 25 / 0.55);
   --color-faint: rgb(38 39 25 / 0.5);

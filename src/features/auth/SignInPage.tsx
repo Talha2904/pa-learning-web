@@ -52,15 +52,11 @@ export function SignInPage() {
   return (
     <div className="pa-login-shell grid min-h-screen animate-fade-in bg-white lg:grid-cols-[minmax(0,520px)_minmax(0,1fr)]">
       <section className="pa-login-hero flex flex-col justify-between gap-10 overflow-hidden bg-ink px-6 py-10 sm:px-12 lg:min-h-screen lg:py-14">
-        <div className="flex animate-soft-in items-center gap-3.5">
-          <img src="/brand-mark.png" alt="Project Accountants" className="block h-auto w-11" />
-          <div>
-            <div className="text-[15px] font-semibold tracking-[1.3px] text-white">PROJECT ACCOUNTANTS</div>
-            <div className="text-[11px] tracking-[1.3px] text-white/50">EMPOWERING BUSINESSES WORLDWIDE</div>
-          </div>
+        <div className="animate-soft-in">
+          <img src="/brand/lumen-horizontal-white.svg" alt="Lumen by Project Accountants" className="block h-auto w-[210px]" />
         </div>
         <div>
-          <div className="mb-[22px] animate-soft-in text-[13px] font-medium tracking-[1.3px] text-white/35 [animation-delay:.3s]">LEARNING PLATFORM</div>
+          <div className="mb-[22px] animate-soft-in text-[13px] font-medium tracking-[1.3px] text-white/35 [animation-delay:.3s]">LEARNING &amp; CPD</div>
           <div className="-mb-2.5 overflow-hidden pb-2.5">
             <div className="animate-reveal text-[clamp(38px,4vw,54px)] font-semibold leading-[1.12] tracking-[-1.4px] text-white [animation-delay:.45s]">Learning</div>
           </div>

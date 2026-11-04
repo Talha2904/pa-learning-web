@@ -1,4 +1,4 @@
-# Project Accountants Learning Platform - Frontend
+# Lumen by Project Accountants - Frontend
 
 React 19 · Vite 7 · TypeScript · Tailwind CSS 4 · MUI 9 (themed) · TanStack Query · React Router 7 ·
 React Hook Form + zod.

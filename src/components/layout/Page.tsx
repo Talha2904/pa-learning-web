@@ -50,7 +50,7 @@ export function Page({ title, subtitle, actions, children }: PageProps) {
   const { profile } = useMe();
 
   useEffect(() => {
-    document.title = `${title} - Project Accountants Learning`;
+    document.title = `${title} | Lumen`;
   }, [title]);
 
   return (

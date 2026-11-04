@@ -9,7 +9,7 @@ import { applyServerErrors, LIMITS } from '@/lib/forms';
 import { ROLE_LABEL } from '@/lib/palette';
 import type { Lookups, PersonAdmin, UserRole } from '@/types/api';
 import { useMe } from '../auth/AuthProvider';
-import { defaultAccess } from './access';
+import { assignableRoles, defaultAccess } from './access';
 import { useSavePerson } from './api';
 import { toPersonInput, userDefaults, userSchema, type UserFormValues } from './user.schema';
 
@@ -88,7 +88,7 @@ function Body({ person, people, lookups, onClose }: Props) {
           label="Role"
           disabled={self}
           hint={self ? 'You cannot change your own role' : undefined}
-          options={(Object.keys(ROLE_LABEL) as UserRole[]).map((r) => ({ value: r, label: ROLE_LABEL[r] }))}
+          options={(self && person ? [person.role] : assignableRoles(me.profile.role)).map((r: UserRole) => ({ value: r, label: ROLE_LABEL[r] }))}
           error={errors.role?.message}
           {...register('role')}
         />
